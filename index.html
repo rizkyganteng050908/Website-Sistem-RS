@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Informasi Rumah Sakit - MedikaPlus</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        medical: {
+                            base: '#0B132B',
+                            surface: '#1C2541',
+                            card: '#1F2A4A',
+                            border: '#2E3B60',
+                            accent: '#00F0FF',
+                            teal: '#00B4D8',
+                            danger: '#FF2E93',
+                            success: '#00E676',
+                            warning: '#FFB703'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Smooth Scroll & Touch Optimizations */
+        html, body {
+            touch-action: manipulation;
+            overflow-x: hidden;
+            background-color: #0B132B;
+        }
+        /* Glassmorphism Styles */
+        .glass-card {
+            background: rgba(31, 42, 74, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-nav {
+            background: rgba(28, 37, 65, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0B132B; }
+        ::-webkit-scrollbar-thumb { background: #2E3B60; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00F0FF; }
+
+        /* Hide scrollbar for horizontal chip scroll on mobile */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-gray-100 font-sans min-h-screen flex flex-col md:flex-row pb-20 md:pb-0">
+
+    <!-- LOGIN / REGISTER SCREEN (Shown when user is logged out) -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-medical-base overflow-y-auto">
+        <!-- Background Decorative Glow Effects -->
+        <div class="absolute -top-20 -left-20 w-80 h-80 bg-medical-accent/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-medical-teal/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="w-full max-w-md my-auto relative z-10">
+            <!-- Brand Header -->
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-medical-accent to-medical-teal font-extrabold text-2xl text-black shadow-[0_0_25px_rgba(0,240,255,0.4)] mb-3">
+                    M+
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-wide text-white">MEDIKA<span class="text-medical-accent">PLUS</span></h1>
+                <p class="text-xs text-gray-400 mt-1">Sistem Informasi & Manajemen Rumah Sakit</p>
+            </div>
+
+            <!-- Login / Register Card -->
+            <div class="glass-card p-6 md:p-8 rounded-3xl border border-medical-border/80 shadow-2xl">
+
+                <!-- Tab Toggle: Login vs Register -->
+                <div class="flex bg-medical-card p-1 rounded-xl mb-6 border border-medical-border/60">
+                    <button id="tab-login-btn" onclick="toggleAuthTab('login')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-medical-accent text-black shadow-md">
+                        Masuk
+                    </button>
+                    <button id="tab-register-btn" onclick="toggleAuthTab('register')" class="flex-1 py-2 text-xs font-bold text-gray-400 hover:text-white rounded-lg transition">
+                        Daftar Pasien
+                    </button>
+                </div>
+
+                <!-- FORM LOGIN -->
+                <form id="authLoginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1.5">Email / Username</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-envelope absolute left-3.5 top-3.5 text-xs text-gray-400"></i>
+                            <input type="text" id="loginUsername" required placeholder="admin@medikaplus.com" class="w-full pl-10 pr-3 py-2.5 bg-medical-card border border-medical-border rounded-xl text-xs md:text-sm text-white focus:outline-none focus:border-medical-accent transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1.5">Password</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-xs text-gray-400"></i>
+                            <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full pl-10 pr-3 py-2.5 bg-medical-card border border-medical-border rounded-xl text-xs md:text-sm text-white focus:outline-none focus:border-medical-accent transition">
+                        </div>
+                    </div>
+
+                    <div id="loginErrorMessage" class="hidden p-3 rounded-xl bg-medical-danger/10 border border-medical-danger/30 text-medical-danger text-xs text-center font-semibold">
+                        Email atau password salah!
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-medical-accent text-black font-extrabold text-sm rounded-xl hover:bg-cyan-300 transition shadow-[0_0_20px_rgba(0,240,255,0.3)] active:scale-95">
+                        <i class="fa-solid fa-right-to-bracket mr-2"></i> Masuk ke Sistem
+                    </button>
+                </form>
+
+                <!-- FORM REGISTER -->
+                <form id="authRegisterForm" onsubmit="handleRegisterSubmit(event)" class="hidden space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Nama Lengkap</label>
+                        <input type="text" id="regName" required placeholder="Ahmad Subagja" class="w-full px-3 py-2 bg-medical-card border border-medical-border rounded-xl text-xs text-white focus:outline-none focus:border-medical-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">NIK (Nomor Induk Kependudukan)</label>
+                        <input type="text" id="regNik" required placeholder="3201..." class="w-full px-3 py-2 bg-medical-card border border-medical-border rounded-xl text-xs text-white focus:outline-none focus:border-medical-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Email</label>
+                        <input type="email" id="regEmail" required placeholder="pasien@gmail.com" class="w-full px-3 py-2 bg-medical-card border border-medical-border rounded-xl text-xs text-white focus:outline-none focus:border-medical-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Password</label>
+                        <input type="password" id="regPassword" required placeholder="••••••••" class="w-full px-3 py-2 bg-medical-card border border-medical-border rounded-xl text-xs text-white focus:outline-none focus:border-medical-accent">
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 bg-medical-teal text-white font-bold text-xs rounded-xl hover:bg-cyan-600 transition mt-2">
+                        <i class="fa-solid fa-user-plus mr-1"></i> Buat Akun Pasien
+                    </button>
+                </form>
+
+                <!-- QUICK 1-CLICK DEMO LOGIN SELECTOR -->
+                <div class="mt-6 pt-5 border-t border-medical-border/80">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase text-center tracking-wider mb-3">Demo Akses Cepat (1-Klik)</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="quickDemoLogin('admin')" class="p-2 rounded-xl bg-medical-card border border-medical-accent/30 hover:bg-medical-accent/10 transition text-center flex flex-col items-center">
+                            <i class="fa-solid fa-user-shield text-medical-accent text-sm mb-1"></i>
+                            <span class="text-[10px] font-bold text-white">Admin</span>
+                        </button>
+                        <button onclick="quickDemoLogin('dokter')" class="p-2 rounded-xl bg-medical-card border border-medical-teal/30 hover:bg-medical-teal/10 transition text-center flex flex-col items-center">
+                            <i class="fa-solid fa-user-doctor text-medical-teal text-sm mb-1"></i>
+                            <span class="text-[10px] font-bold text-white">Dokter</span>
+                        </button>
+                        <button onclick="quickDemoLogin('pasien')" class="p-2 rounded-xl bg-medical-card border border-medical-warning/30 hover:bg-medical-warning/10 transition text-center flex flex-col items-center">
+                            <i class="fa-solid fa-hospital-user text-medical-warning text-sm mb-1"></i>
+                            <span class="text-[10px] font-bold text-white">Pasien</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SYSTEM APPLICATION WRAPPER (Hidden when logged out) -->
+    <div id="main-app" class="hidden flex-1 flex flex-col md:flex-row w-full min-h-screen">
+
+        <!-- DESKTOP SIDEBAR (Visible on md and larger) -->
+        <aside id="desktop-sidebar" class="hidden md:flex flex-col w-64 bg-medical-surface border-r border-medical-border shrink-0 h-screen sticky top-0 z-30">
+            <div class="p-5 border-b border-medical-border/60 flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-medical-accent to-medical-teal flex items-center justify-center font-extrabold text-lg text-black shadow-[0_0_15px_rgba(0,240,255,0.4)]">
+                    M+
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base text-white tracking-wider">MEDIKA<span class="text-medical-accent">PLUS</span></h1>
+                    <p class="text-[10px] text-gray-400 font-medium">Hospital Info System</p>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-1.5 flex-1 overflow-y-auto">
+                <button onclick="switchTab('dashboard')" id="desk-nav-dashboard" class="nav-btn-desk active w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition">
+                    <i class="fa-solid fa-chart-pie w-5"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="switchTab('patients')" id="desk-nav-patients" class="nav-btn-desk role-admin role-dokter w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-medical-card transition">
+                    <i class="fa-solid fa-hospital-user w-5"></i>
+                    <span>Data Pasien</span>
+                </button>
+                <button onclick="switchTab('doctors')" id="desk-nav-doctors" class="nav-btn-desk w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-medical-card transition">
+                    <i class="fa-solid fa-user-doctor w-5"></i>
+                    <span>Jadwal Dokter</span>
+                </button>
+                <button onclick="switchTab('appointments')" id="desk-nav-appointments" class="nav-btn-desk w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-medical-card transition">
+                    <i class="fa-solid fa-calendar-check w-5"></i>
+                    <span>Janji Temu</span>
+                </button>
+                <button onclick="switchTab('pharmacy')" id="desk-nav-pharmacy" class="nav-btn-desk role-admin w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-medical-card transition">
+                    <i class="fa-solid fa-pills w-5"></i>
+                    <span>Stok Apotek</span>
+                </button>
+            </nav>
+
+            <!-- Active User Profile Footer & Logout -->
+            <div class="p-4 border-t border-medical-border bg-medical-base/40 flex items-center justify-between">
+                <div class="flex items-center space-x-3 truncate">
+                    <img id="userAvatarDesk" src="" class="w-10 h-10 rounded-full border border-medical-accent object-cover" alt="User Avatar">
+                    <div class="truncate">
+                        <p id="userNameDesk" class="text-xs font-bold text-white truncate">User Name</p>
+                        <p id="userRoleBadgeDesk" class="text-[10px] text-medical-accent font-medium uppercase">ROLE</p>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" title="Keluar dari sistem" class="text-gray-400 hover:text-medical-danger p-2 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT WRAPPER -->
+        <div class="flex-1 flex flex-col min-w-0 max-w-full">
+
+            <!-- TOP BAR / HEADER -->
+            <header class="bg-medical-surface/80 backdrop-blur-md border-b border-medical-border p-3.5 md:p-5 sticky top-0 z-20 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <!-- Mobile Logo -->
+                    <div class="md:hidden flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-medical-accent to-medical-teal flex items-center justify-center font-black text-sm text-black">
+                            M+
+                        </div>
+                        <span class="font-extrabold text-sm text-white">MEDIKA<span class="text-medical-accent">PLUS</span></span>
+                    </div>
+                    
+                    <div class="hidden md:block">
+                        <h2 id="page-title" class="text-xl font-bold text-white tracking-wide">Dashboard Operasional</h2>
+                        <p id="page-subtitle" class="text-xs text-gray-400">Sistem Pemantauan Rumah Sakit Realtime</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <!-- Status UGD 24 Jam Indicator -->
+                    <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-medical-danger/10 border border-medical-danger/30 text-medical-danger text-[11px] font-bold">
+                        <span class="w-2 h-2 rounded-full bg-medical-danger animate-ping"></span>
+                        <span>UGD 24H ACTIVE</span>
+                    </div>
+
+                    <!-- Clock Display -->
+                    <div id="live-clock" class="hidden sm:block text-xs font-mono px-3 py-1.5 rounded-lg bg-medical-card border border-medical-border text-medical-accent">
+                        00:00:00 WIB
+                    </div>
+
+                    <!-- User Header Badge & Mobile Logout -->
+                    <div class="flex items-center space-x-2 pl-2 border-l border-medical-border/60">
+                        <img id="userAvatarTop" src="" class="w-8 h-8 rounded-full border border-medical-accent object-cover md:hidden" alt="User">
+                        <button onclick="handleLogout()" class="md:hidden p-1.5 text-gray-400 hover:text-medical-danger text-sm">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENT VIEWS AREA -->
+            <main class="p-3.5 md:p-6 space-y-6 flex-1 max-w-7xl w-full mx-auto">
+                
+                <!-- VIEW 1: DASHBOARD -->
+                <section id="view-dashboard" class="space-y-6">
+                    <!-- Stat Cards Grid -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                        <div class="glass-card p-4 rounded-2xl flex items-center space-x-3.5">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-medical-accent/10 border border-medical-accent/30 flex items-center justify-center text-medical-accent text-lg md:text-xl shrink-0">
+                                <i class="fa-solid fa-hospital-user"></i>
+                            </div>
+                            <div class="truncate">
+                                <p class="text-[11px] text-gray-400 font-medium truncate">Total Pasien</p>
+                                <h3 id="stat-total-patients" class="text-lg md:text-2xl font-extrabold text-white">0</h3>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl flex items-center space-x-3.5">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-medical-teal/10 border border-medical-teal/30 flex items-center justify-center text-medical-teal text-lg md:text-xl shrink-0">
+                                <i class="fa-solid fa-bed-pulse"></i>
+                            </div>
+                            <div class="truncate">
+                                <p class="text-[11px] text-gray-400 font-medium truncate">Bed Tersedia</p>
+                                <h3 id="stat-available-beds" class="text-lg md:text-2xl font-extrabold text-white">0</h3>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl flex items-center space-x-3.5">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-medical-success/10 border border-medical-success/30 flex items-center justify-center text-medical-success text-lg md:text-xl shrink-0">
+                                <i class="fa-solid fa-user-doctor"></i>
+                            </div>
+                            <div class="truncate">
+                                <p class="text-[11px] text-gray-400 font-medium truncate">Dokter Jaga</p>
+                                <h3 id="stat-on-duty" class="text-lg md:text-2xl font-extrabold text-white">0</h3>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl flex items-center space-x-3.5">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-medical-warning/10 border border-medical-warning/30 flex items-center justify-center text-medical-warning text-lg md:text-xl shrink-0">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <div class="truncate">
+                                <p class="text-[11px] text-gray-400 font-medium truncate">Janji Menunggu</p>
+                                <h3 id="stat-pending-appts" class="text-lg md:text-2xl font-extrabold text-white">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart & Bed Capacity Overview Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Chart Area -->
+                        <div class="lg:col-span-2 glass-card p-4 md:p-6 rounded-3xl flex flex-col justify-between">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <h3 class="text-sm md:text-base font-bold text-white">Grafik Kunjungan Pasien</h3>
+                                    <p class="text-xs text-gray-400">Statistik penerimaan mingguan</p>
+                                </div>
+                                <span class="px-2.5 py-1 bg-medical-accent/10 border border-medical-accent/30 text-medical-accent text-[11px] font-semibold rounded-lg">7 Hari Terakhir</span>
+                            </div>
+                            <div class="relative w-full h-56 md:h-64">
+                                <canvas id="admissionsChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Bed Capacity Status -->
+                        <div class="glass-card p-4 md:p-6 rounded-3xl flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-sm md:text-base font-bold text-white mb-1">Kapasitas Kamar</h3>
+                                <p class="text-xs text-gray-400 mb-4">Monitoring ketersediaan rawat inap</p>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-gray-300">VIP / VVIP</span>
+                                            <span class="text-medical-accent font-mono font-bold">5 Tersedia</span>
+                                        </div>
+                                        <div class="w-full bg-medical-card h-2 rounded-full overflow-hidden border border-medical-border">
+                                            <div class="bg-medical-accent h-full rounded-full" style="width: 60%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-gray-300">Kelas 1 & 2</span>
+                                            <span class="text-medical-success font-mono font-bold">8 Tersedia</span>
+                                        </div>
+                                        <div class="w-full bg-medical-card h-2 rounded-full overflow-hidden border border-medical-border">
+                                            <div class="bg-medical-success h-full rounded-full" style="width: 75%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-gray-300">Ruang ICU & Isolasi</span>
+                                            <span class="text-medical-danger font-mono font-bold">2 Tersedia</span>
+                                        </div>
+                                        <div class="w-full bg-medical-card h-2 rounded-full overflow-hidden border border-medical-border">
+                                            <div class="bg-medical-danger h-full rounded-full" style="width: 90%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-medical-border flex items-center justify-between text-xs">
+                                <span class="text-gray-400">Pembaruan otomatis</span>
+                                <span class="text-medical-accent font-semibold"><i class="fa-solid fa-rotate-right mr-1"></i> Live</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 2: PATIENTS MANAGEMENT -->
+                <div class="hidden md:block glass-card rounded-2xl overflow-hidden border border-medical-border">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-medical-card/80 text-gray-400 uppercase text-xs border-b border-medical-border">
+                                <tr>
+                                    <th class="px-5 py-3.5">Pasien</th>
+                                    <th class="px-5 py-3.5">Dokter</th>
+                                    <th class="px-5 py-3.5">Jadwal</th>
+                                    <th class="px-5 py-3.5">Keluhan</th>
+                                    <th class="px-5 py-3.5">Status</th>
+                                    <th class="px-5 py-3.5 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentTableBody" class="divide-y divide-medical-border text-gray-300">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MOBILE STICKY BOTTOM NAVIGATION BAR -->
+    <nav id="mobile-bottom-nav" class="hidden md:hidden fixed bottom-0 inset-x-0 glass-nav z-40 px-2 py-2 flex justify-around items-center">
+        <button onclick="switchTab('dashboard')" id="mob-nav-dashboard" class="nav-btn-mob flex flex-col items-center py-1 px-3 text-medical-accent">
+            <i class="fa-solid fa-chart-pie text-lg"></i>
+            <span class="text-[10px] font-medium mt-1">Dashboard</span>
+        </button>
+        <button onclick="switchTab('patients')" id="mob-nav-patients" class="nav-btn-mob role-admin role-dokter flex flex-col items-center py-1 px-3 text-gray-400">
+            <i class="fa-solid fa-hospital-user text-lg"></i>
+            <span class="text-[10px] font-medium mt-1">Pasien</span>
+        </button>
+        <button onclick="switchTab('doctors')" id="mob-nav-doctors" class="nav-btn-mob flex flex-col items-center py-1 px-3 text-gray-400">
+            <i class="fa-solid fa-user-doctor text-lg"></i>
+            <span class="text-[10px] font-medium mt-1">Dokter</span>
+        </button>
+        <button onclick="switchTab('appointments')" id="mob-nav-appointments" class="nav-btn-mob flex flex-col items-center py-1 px-3 text-gray-400">
+            <i class="fa-solid fa-calendar-check text-lg"></i>
+            <span class="text-[10px] font-medium mt-1">Janji</span>
+        </button>
+        <button onclick="switchTab('pharmacy')" id="mob-nav-pharmacy" class="nav-btn-mob role-admin flex flex-col items-center py-1 px-3 text-gray-400">
+            <i class="fa-solid fa-pills text-lg"></i>
+            <span class="text-[10px] font-medium mt-1">Obat</span>
+        </button>
+    </nav>
+
+    <!-- ... existing modals ... -->
+
+    <!-- JAVASCRIPT AUTHENTICATION & SYSTEM CORE LOGIC -->
+    <script>
+        // --- DEMO ACCOUNTS SEED DATA ---
+        const demoAccounts = {
+            admin: {
+                name: 'Dr. Aris Setiawan',
+                email: 'admin@medikaplus.com',
+                role: 'Admin',
+                avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&auto=format&fit=crop&q=80'
+            },
+            dokter: {
+                name: 'dr. Hendra Wijaya, Sp.JP',
+                email: 'dokter@medikaplus.com',
+                role: 'Dokter',
+                avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=100&auto=format&fit=crop&q=80'
+            },
+            pasien: {
+                name: 'Budi Santoso',
+                email: 'pasien@medikaplus.com',
+                role: 'Pasien',
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'
+            }
+        };
+
+        let currentUser = loadData('currentUser', null);
+
+        // --- AUTH & SESSION CONTROLLER ---
+        function toggleAuthTab(type) {
+            const loginForm = document.getElementById('authLoginForm');
+            const regForm = document.getElementById('authRegisterForm');
+            const loginBtn = document.getElementById('tab-login-btn');
+            const regBtn = document.getElementById('tab-register-btn');
+
+            if (type === 'login') {
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                loginBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-medical-accent text-black shadow-md";
+                regBtn.className = "flex-1 py-2 text-xs font-bold text-gray-400 hover:text-white rounded-lg transition";
+            } else {
+                loginForm.classList.add('hidden');
+                regForm.classList.remove('hidden');
+                regBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-medical-teal text-white shadow-md";
+                loginBtn.className = "flex-1 py-2 text-xs font-bold text-gray-400 hover:text-white rounded-lg transition";
+            }
+        }
+
+        function quickDemoLogin(roleKey) {
+            const account = demoAccounts[roleKey];
+            if (account) {
+                loginUserSession(account);
+            }
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            
+            // Check matching demo roles or fallback default user
+            let user = Object.values(demoAccounts).find(acc => acc.email.toLowerCase() === username.toLowerCase());
+            
+            if (!user) {
+                user = {
+                    name: username.split('@')[0] || 'Pengguna',
+                    email: username,
+                    role: 'Pasien',
+                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'
+                };
+            }
+
+            loginUserSession(user);
+        }
+
+        function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const nik = document.getElementById('regNik').value;
+
+            // Auto add to patient database
+            const newPatient = {
+                id: 'P' + String(Date.now()).slice(-4),
+                name: name,
+                nik: nik,
+                age: 28,
+                gender: 'Laki-laki',
+                dept: 'Poli Umum',
+                status: 'Rawat Jalan',
+                contact: '08123456789'
+            };
+            patients.push(newPatient);
+            saveData('patients', patients);
+
+            // Log user in
+            const registeredUser = {
+                name: name,
+                email: email,
+                role: 'Pasien',
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'
+            };
+            loginUserSession(registeredUser);
+        }
+
+        function loginUserSession(userObj) {
+            currentUser = userObj;
+            saveData('currentUser', currentUser);
+            initAppSession();
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('rs_v2_currentUser');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('mobile-bottom-nav').classList.add('hidden');
+        }
+
+        function initAppSession() {
+            if (!currentUser) {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('main-app').classList.add('hidden');
+                document.getElementById('mobile-bottom-nav').classList.add('hidden');
+                return;
+            }
+
+            // Hide Login & Show Main Dashboard App
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('flex');
+            document.getElementById('mobile-bottom-nav').classList.remove('hidden');
+
+            // Populate User Header Profiles
+            document.getElementById('userNameDesk').innerText = currentUser.name;
+            document.getElementById('userRoleBadgeDesk').innerText = currentUser.role;
+            document.getElementById('userAvatarDesk').src = currentUser.avatar;
+            document.getElementById('userAvatarTop').src = currentUser.avatar;
+
+            // Apply Role Access Visibility
+            applyRolePermissions(currentUser.role);
+
+            // Default view to dashboard
+            switchTab('dashboard');
+        }
+
+        function applyRolePermissions(role) {
+            // Show/Hide Navigation based on roles
+            const isPasien = role === 'Pasien';
+
+            document.querySelectorAll('.role-admin').forEach(el => {
+                if (role !== 'Admin') el.classList.add('hidden');
+                else el.classList.remove('hidden');
+            });
+
+            document.querySelectorAll('.role-dokter').forEach(el => {
+                if (role === 'Pasien') el.classList.add('hidden');
+                else if (role === 'Admin' || role === 'Dokter') el.classList.remove('hidden');
+            });
+        }
+
+        // --- DATA STORAGE & SEEDS ---
+        const initialPatients = [
+            { id: 'P001', name: 'Budi Santoso', nik: '3174012903880001', age: 42, gender: 'Laki-laki', dept: 'Poli Jantung', status: 'Rawat Inap', contact: '081299887766' },
+            { id: 'P002', name: 'Siti Rahma', nik: '3174015507920003', age: 31, gender: 'Perempuan', dept: 'Poli Anak', status: 'Rawat Jalan', contact: '085711223344' },
+            { id: 'P003', name: 'Ahmad Dahlan', nik: '3201021411750002', age: 49, gender: 'Laki-laki', dept: 'Poli Saraf', status: 'Rawat Inap', contact: '081344556677' },
+            { id: 'P004', name: 'Dewi Lestari', nik: '3172046812000005', age: 24, gender: 'Perempuan', dept: 'Poli Umum', status: 'Selesai', contact: '087822334455' }
+        ];
+
+        const initialDoctors = [
+            { id: 'D001', name: 'dr. Hendra Wijaya, Sp.JP', spec: 'Spesialis Jantung', status: 'Tersedia', room: 'R. 302', schedule: '08:00 - 14:00', img: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80' },
+            { id: 'D002', name: 'dr. Maya Putri, Sp.A', spec: 'Spesialis Anak', status: 'Tersedia', room: 'R. 105', schedule: '09:00 - 15:00', img: 'https://images.unsplash.com/photo-1594824813566-88855ce78907?w=200&auto=format&fit=crop&q=80' },
+            { id: 'D003', name: 'dr. Bambang, Sp.S', spec: 'Spesialis Saraf', status: 'Sedang Operasi', room: 'R. 204', schedule: '13:00 - 18:00', img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80' },
+            { id: 'D004', name: 'dr. Rina S., Sp.M', spec: 'Spesialis Mata', status: 'Tersedia', room: 'R. 108', schedule: '08:00 - 12:00', img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80' },
+            { id: 'D005', name: 'dr. Lukman H., Sp.PD', spec: 'Penyakit Dalam', status: 'Off', room: 'R. 201', schedule: 'Besok 08:00', img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80' }
+        ];
+
+        const initialAppointments = [
+            { id: 'A001', patientName: 'Siti Rahma', doctorName: 'dr. Maya Putri, Sp.A', datetime: '2026-11-09 10:00', notes: 'Kontrol anak', status: 'Diperiksa' },
+            { id: 'A002', patientName: 'Budi Santoso', doctorName: 'dr. Hendra Wijaya, Sp.JP', datetime: '2026-11-09 11:30', notes: 'Evaluasi jantung', status: 'Menunggu' }
+        ];
+
+        const initialPharmacy = [
+            { id: 'M001', name: 'Paracetamol', category: 'Analgesik', stock: 120, dose: '500 mg' },
+            { id: 'M002', name: 'Amoxicillin', category: 'Antibiotik', stock: 18, dose: '500 mg' },
+            { id: 'M003', name: 'Cefadroxil', category: 'Antibiotik', stock: 45, dose: '500 mg' },
+            { id: 'M004', name: 'Amlodipine', category: 'Hipertensi', stock: 12, dose: '10 mg' }
+        ];
+
+        // --- LOCAL STORAGE HELPERS ---
+        function loadData(key, fallback) {
+            const data = localStorage.getItem('rs_v2_' + key);
+            return data ? JSON.parse(data) : fallback;
+        }
+
+        function saveData(key, data) {
+            localStorage.setItem('rs_v2_' + key, JSON.stringify(data));
+        }
+
+        let patients = loadData('patients', initialPatients);
+        let doctors = loadData('doctors', initialDoctors);
+        let appointments = loadData('appointments', initialAppointments);
+        let pharmacy = loadData('pharmacy', initialPharmacy);
+
+        const viewTitles = {
+            dashboard: { title: "Dashboard Operasional", subtitle: "Sistem Pemantauan Rumah Sakit Realtime" },
+            patients: { title: "Manajemen Data Pasien", subtitle: "Pendaftaran & Catatan Status Pasien" },
+            doctors: { title: "Jadwal & Spesialis", subtitle: "Daftar Dokter Jaga & Poliklinik" },
+            appointments: { title: "Sistem Antrean & Janji", subtitle: "Jadwal Konsultasi Dokter" },
+            pharmacy: { title: "Stok Obat & Apotek", subtitle: "Monitoring Ketersediaan Obat" }
+        };
+
+        // TAB NAVIGATION SYSTEM
+        function switchTab(tabId) {
+            document.querySelectorAll('section[id^="view-"]').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('view-' + tabId);
+            if (target) target.classList.remove('hidden');
+
+            // Update Desktop Nav Active State
+            document.querySelectorAll('.nav-btn-desk').forEach(btn => {
+                btn.classList.remove('bg-medical-accent/10', 'text-medical-accent', 'border', 'border-medical-accent/30');
+                btn.classList.add('text-gray-400');
+            });
+            const activeDeskBtn = document.getElementById('desk-nav-' + tabId);
+            if (activeDeskBtn) {
+                activeDeskBtn.classList.add('bg-medical-accent/10', 'text-medical-accent', 'border', 'border-medical-accent/30');
+                activeDeskBtn.classList.remove('text-gray-400');
+            }
+
+            // Update Mobile Bottom Nav Active State
+            document.querySelectorAll('.nav-btn-mob').forEach(btn => {
+                btn.classList.remove('text-medical-accent');
+                btn.classList.add('text-gray-400');
+            });
+            const activeMobBtn = document.getElementById('mob-nav-' + tabId);
+            if (activeMobBtn) {
+                activeMobBtn.classList.add('text-medical-accent');
+                activeMobBtn.classList.remove('text-gray-400');
+            }
+
+            if (viewTitles[tabId]) {
+                document.getElementById('page-title').innerText = viewTitles[tabId].title;
+                document.getElementById('page-subtitle').innerText = viewTitles[tabId].subtitle;
+            }
+
+            // Render view-specific content
+            if (tabId === 'patients') renderPatients();
+            if (tabId === 'doctors') renderDoctors();
+            if (tabId === 'appointments') renderAppointments();
+            if (tabId === 'pharmacy') renderPharmacy();
+            if (tabId === 'dashboard') updateDashboardStats();
+        }
+
+        // --- DASHBOARD LOGIC ---
+        function updateDashboardStats() {
+            document.getElementById('stat-total-patients').innerText = patients.length;
+            const inPatients = patients.filter(p => p.status === 'Rawat Inap').length;
+            document.getElementById('stat-available-beds').innerText = (50 - inPatients);
+            document.getElementById('stat-on-duty').innerText = doctors.filter(d => d.status === 'Tersedia').length;
+            document.getElementById('stat-pending-appts').innerText = appointments.filter(a => a.status === 'Menunggu').length;
+        }
+
+        let chartInstance = null;
+        function initChart() {
+            const canvas = document.getElementById('admissionsChart');
+            if (!canvas) return; // Safeguard if canvas isn't present in DOM
+
+            const ctx = canvas.getContext('2d');
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Ming'],
+                    datasets: [{
+                        label: 'Pasien Kunjungan',
+                        data: [14, 22, 18, 26, 32, 28, 20],
+                        borderColor: '#00F0FF',
+                        backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#00F0FF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8E9BAE', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8E9BAE', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // --- PATIENTS RENDER (Adaptive Table & Cards) ---
+        function renderPatients() {
+            const mobileContainer = document.getElementById('patientMobileCards');
+            const desktopBody = document.getElementById('patientTableBody');
+            const search = document.getElementById('patientSearchInput').value.toLowerCase();
+            const filter = document.getElementById('patientFilterStatus').value;
+
+            const filtered = patients.filter(p => {
+                const matchSearch = p.name.toLowerCase().includes(search) || p.nik.includes(search) || p.dept.toLowerCase().includes(search);
+                const matchFilter = filter === 'ALL' || p.status === filter;
+                return matchSearch && matchFilter;
+            });
+
+            // Mobile Cards HTML
+            mobileContainer.innerHTML = filtered.map(p => {
+                let badgeClass = 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+                if (p.status === 'Rawat Inap') badgeClass = 'bg-medical-danger/20 text-medical-danger border-medical-danger/30';
+                if (p.status === 'Rawat Jalan') badgeClass = 'bg-medical-accent/20 text-medical-accent border-medical-accent/30';
+                if (p.status === 'Selesai') badgeClass = 'bg-medical-success/20 text-medical-success border-medical-success/30';
+
+                return `
+                <div class="glass-card p-3.5 rounded-2xl flex flex-col justify-between space-y-2">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${p.name}</h4>
+                            <p class="text-[11px] text-gray-400">NIK: ${p.nik}</p>
+                        </div>
+                        <span class="px-2 py-0.5 text-[10px] rounded-full border ${badgeClass} font-semibold">${p.status}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs pt-2 border-t border-medical-border/50 text-gray-300">
+                        <span><i class="fa-solid fa-building-user text-medical-accent mr-1"></i>${p.dept}</span>
+                        <span><i class="fa-solid fa-phone text-gray-400 mr-1"></i>${p.contact}</span>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-1">
+                        <button onclick="editPatient('${p.id}')" class="px-2.5 py-1 bg-medical-card border border-medical-border rounded-lg text-xs text-medical-accent"><i class="fa-solid fa-pen-to-square mr-1"></i>Edit</button>
+                        <button onclick="deletePatient('${p.id}')" class="px-2.5 py-1 bg-medical-card border border-medical-border rounded-lg text-xs text-medical-danger"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            // Desktop Table Rows HTML
+            desktopBody.innerHTML = filtered.map(p => {
+                let badgeClass = 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+                if (p.status === 'Rawat Inap') badgeClass = 'bg-medical-danger/20 text-medical-danger border-medical-danger/30';
+                if (p.status === 'Rawat Jalan') badgeClass = 'bg-medical-accent/20 text-medical-accent border-medical-accent/30';
+                if (p.status === 'Selesai') badgeClass = 'bg-medical-success/20 text-medical-success border-medical-success/30';
+
+                return `
+                <tr class="hover:bg-medical-card/40 transition">
+                    <td class="px-5 py-3">
+                        <p class="font-semibold text-white">${p.name}</p>
+                        <p class="text-xs text-gray-400 font-mono">NIK: ${p.nik}</p>
+                    </td>
+                    <td class="px-5 py-3">${p.age} thn / ${p.gender}</td>
+                    <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-md bg-medical-card border border-medical-border text-xs">${p.dept}</span></td>
+                    <td class="px-5 py-3"><span class="px-2.5 py-0.5 text-xs rounded-full border ${badgeClass} font-medium">${p.status}</span></td>
+                    <td class="px-5 py-3 text-xs font-mono">${p.contact}</td>
+                    <td class="px-5 py-3 text-right space-x-2">
+                        <button onclick="editPatient('${p.id}')" class="text-medical-accent hover:text-white"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deletePatient('${p.id}')" class="text-medical-danger hover:text-white"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function openPatientModal(editId = null) {
+            document.getElementById('patientForm').reset();
+            document.getElementById('patientId').value = '';
+            document.getElementById('patientModalTitle').innerText = editId ? 'Edit Data Pasien' : 'Tambah Pasien Baru';
+
+            if (editId) {
+                const p = patients.find(item => item.id === editId);
+                if (p) {
+                    document.getElementById('patientId').value = p.id;
+                    document.getElementById('pName').value = p.name;
+                    document.getElementById('pNik').value = p.nik;
+                    document.getElementById('pAge').value = p.age;
+                    document.getElementById('pGender').value = p.gender;
+                    document.getElementById('pDept').value = p.dept;
+                    document.getElementById('pStatus').value = p.status;
+                    document.getElementById('pContact').value = p.contact;
+                }
+            }
+            document.getElementById('patientModal').classList.remove('hidden');
+        }
+
+        function closePatientModal() {
+            document.getElementById('patientModal').classList.add('hidden');
+        }
+
+        function savePatient(e) {
+            e.preventDefault();
+            const id = document.getElementById('patientId').value;
+            const newPatient = {
+                id: id || 'P' + String(Date.now()).slice(-4),
+                name: document.getElementById('pName').value,
+                nik: document.getElementById('pNik').value,
+                age: document.getElementById('pAge').value,
+                gender: document.getElementById('pGender').value,
+                dept: document.getElementById('pDept').value,
+                status: document.getElementById('pStatus').value,
+                contact: document.getElementById('pContact').value
+            };
+
+            if (id) {
+                const idx = patients.findIndex(p => p.id === id);
+                if (idx !== -1) patients[idx] = newPatient;
+            } else {
+                patients.push(newPatient);
+            }
+
+            saveData('patients', patients);
+            closePatientModal();
+            renderPatients();
+            updateDashboardStats();
+        }
+
+        function editPatient(id) { openPatientModal(id); }
+
+        function deletePatient(id) {
+            if (confirm('Hapus record pasien ini?')) {
+                patients = patients.filter(p => p.id !== id);
+                saveData('patients', patients);
+                renderPatients();
+                updateDashboardStats();
+            }
+        }
+
+        // --- DOCTORS GRID ---
+        function renderDoctors() {
+            const grid = document.getElementById('doctorsGrid');
+            grid.innerHTML = doctors.map(d => {
+                let statusBadge = 'bg-medical-success/20 text-medical-success border-medical-success/30';
+                if (d.status === 'Sedang Operasi') statusBadge = 'bg-medical-warning/20 text-medical-warning border-medical-warning/30';
+                if (d.status === 'Off') statusBadge = 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+
+                return `
+                <div class="glass-card p-4 rounded-2xl flex items-start space-x-3">
+                    <img src="${d.img}" class="w-14 h-14 rounded-xl object-cover border border-medical-border shrink-0" alt="${d.name}">
+                    <div class="flex-1 min-w-0">
+                        <span class="text-[10px] font-bold text-medical-accent uppercase tracking-wide">${d.spec}</span>
+                        <h4 class="text-xs md:text-sm font-bold text-white truncate">${d.name}</h4>
+                        <p class="text-[11px] text-gray-400 mt-0.5"><i class="fa-solid fa-door-open mr-1"></i>${d.room} | ${d.schedule}</p>
+                        <div class="mt-2">
+                            <span class="px-2 py-0.5 text-[10px] rounded-full border ${statusBadge} font-semibold">${d.status}</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // --- APPOINTMENTS MANAGEMENT ---
+        function renderAppointments() {
+            const mobileCards = document.getElementById('appointmentMobileCards');
+            const desktopBody = document.getElementById('appointmentTableBody');
+
+            mobileCards.innerHTML = appointments.map(a => {
+                let badgeClass = 'bg-medical-warning/20 text-medical-warning border-medical-warning/30';
+                if (a.status === 'Diperiksa') badgeClass = 'bg-medical-success/20 text-medical-success border-medical-success/30';
+
+                return `
+                <div class="glass-card p-3.5 rounded-2xl space-y-2">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${a.patientName}</h4>
+                            <p class="text-[11px] text-medical-accent">${a.doctorName}</p>
+                        </div>
+                        <span class="px-2 py-0.5 text-[10px] rounded-full border ${badgeClass} font-semibold">${a.status}</span>
+                    </div>
+                    <p class="text-xs text-gray-300"><i class="fa-solid fa-clock text-gray-400 mr-1"></i>${a.datetime}</p>
+                    <p class="text-xs text-gray-400 bg-medical-card p-2 rounded-xl border border-medical-border/50">${a.notes}</p>
+                </div>
+                `;
+            }).join('');
+
+            desktopBody.innerHTML = appointments.map(a => {
+                let badgeClass = 'bg-medical-warning/20 text-medical-warning border-medical-warning/30';
+                if (a.status === 'Diperiksa') badgeClass = 'bg-medical-success/20 text-medical-success border-medical-success/30';
+
+                return `
+                <tr class="hover:bg-medical-card/40 transition">
+                    <td class="px-5 py-3 font-semibold text-white">${a.patientName}</td>
+                    <td class="px-5 py-3 text-gray-300 text-xs">${a.doctorName}</td>
+                    <td class="px-5 py-3 text-xs font-mono text-medical-accent">${a.datetime}</td>
+                    <td class="px-5 py-3 text-xs text-gray-400">${a.notes}</td>
+                    <td class="px-5 py-3"><span class="px-2.5 py-0.5 text-xs rounded-full border ${badgeClass} font-medium">${a.status}</span></td>
+                    <td class="px-5 py-3 text-right">
+                        ${a.status === 'Menunggu' ? `
+                            <button onclick="updateAppStatus('${a.id}', 'Diperiksa')" class="px-2.5 py-1 bg-medical-success/20 text-medical-success rounded text-xs hover:bg-medical-success hover:text-black">Diperiksa</button>
+                        ` : `<span class="text-xs text-gray-500">Selesai</span>`}
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function openAppointmentModal() {
+            const pSelect = document.getElementById('appPatientSelect');
+            const dSelect = document.getElementById('appDoctorSelect');
+
+            pSelect.innerHTML = patients.map(p => `<option value="${p.name}">${p.name} (${p.dept})</option>`).join('');
+            dSelect.innerHTML = doctors.map(d => `<option value="${d.name}">${d.name} - ${d.spec}</option>`).join('');
+
+            document.getElementById('appointmentForm').reset();
+            document.getElementById('appointmentModal').classList.remove('hidden');
+        }
+
+        function closeAppointmentModal() {
+            document.getElementById('appointmentModal').classList.add('hidden');
+        }
+
+        function saveAppointment(e) {
+            e.preventDefault();
+            const newApp = {
+                id: 'A' + String(Date.now()).slice(-4),
+                patientName: document.getElementById('appPatientSelect').value,
+                doctorName: document.getElementById('appDoctorSelect').value,
+                datetime: document.getElementById('appDate').value + ' ' + document.getElementById('appTime').value,
+                notes: document.getElementById('appNotes').value,
+                status: 'Menunggu'
+            };
+            appointments.push(newApp);
+            saveData('appointments', appointments);
+            closeAppointmentModal();
+            renderAppointments();
+            updateDashboardStats();
+        }
+
+        function updateAppStatus(id, newStatus) {
+            const app = appointments.find(a => a.id === id);
+            if (app) {
+                app.status = newStatus;
+                saveData('appointments', appointments);
+                renderAppointments();
+                updateDashboardStats();
+            }
+        }
+
+        // --- PHARMACY ---
+        function renderPharmacy() {
+            const grid = document.getElementById('pharmacyGrid');
+            const search = document.getElementById('pharmacySearchInput').value.toLowerCase();
+
+            const filtered = pharmacy.filter(m => m.name.toLowerCase().includes(search) || m.category.toLowerCase().includes(search));
+
+            grid.innerHTML = filtered.map(m => {
+                const isLow = m.stock <= 20;
+                return `
+                <div class="glass-card p-3.5 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-bold text-medical-accent">${m.category}</span>
+                            ${isLow ? '<span class="px-1.5 py-0.5 bg-medical-danger/20 text-medical-danger text-[9px] font-bold rounded">LOW</span>' : ''}
+                        </div>
+                        <h4 class="font-bold text-white text-sm mt-1">${m.name}</h4>
+                        <p class="text-[11px] text-gray-400">${m.dose}</p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-medical-border flex justify-between items-center">
+                        <div>
+                            <p class="text-[9px] text-gray-400 uppercase">Stok</p>
+                            <p class="text-sm font-bold ${isLow ? 'text-medical-danger' : 'text-medical-success'}">${m.stock} unit</p>
+                        </div>
+                        <button onclick="addStock('${m.id}')" class="p-1.5 bg-medical-card border border-medical-border rounded-lg text-medical-accent">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function openMedicineModal() {
+            document.getElementById('medicineForm').reset();
+            document.getElementById('medicineModal').classList.remove('hidden');
+        }
+
+        function closeMedicineModal() {
+            document.getElementById('medicineModal').classList.add('hidden');
+        }
+
+        function saveMedicine(e) {
+            e.preventDefault();
+            const newMed = {
+                id: 'M' + String(Date.now()).slice(-4),
+                name: document.getElementById('mName').value,
+                category: document.getElementById('mCategory').value,
+                stock: parseInt(document.getElementById('mStock').value),
+                dose: document.getElementById('mDose').value
+            };
+            pharmacy.push(newMed);
+            saveData('pharmacy', pharmacy);
+            closeMedicineModal();
+            renderPharmacy();
+        }
+
+        function addStock(id) {
+            const item = pharmacy.find(m => m.id === id);
+            if (item) {
+                item.stock += 10;
+                saveData('pharmacy', pharmacy);
+                renderPharmacy();
+            }
+        }
+
+        // Realtime Clock
+        function updateClock() {
+            const now = new Date();
+            const clock = document.getElementById('live-clock');
+            if (clock) clock.innerText = now.toLocaleTimeString('id-ID') + ' WIB';
+        }
+
+        // Init
+        window.onload = function() {
+            initChart();
+            updateDashboardStats();
+            setInterval(updateClock, 1000);
+            updateClock();
+        };
+    </script>
+</body>
+</html>
+        // Init Session on load
+        window.onload = function() {
+            initAppSession();
+            setInterval(updateClock, 1000);
+            updateClock();
+        };
+    </script>
+</body>
+</html>
